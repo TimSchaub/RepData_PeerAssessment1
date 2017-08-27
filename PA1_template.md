@@ -1,21 +1,18 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 ## Loading and preprocessing the data
 
 First read data from disk into data frame activityData:
 
-```{r loadData}
+
+```r
 activityData <- read.csv("activity.csv", stringsAsFactors = FALSE)
 ```
 
 Convert date string to date
 
-```{r convert}
+
+```r
 activityData$date <- as.POSIXct(activityData$date, format="%Y-%m-%d")
 ```
 
@@ -24,19 +21,34 @@ activityData$date <- as.POSIXct(activityData$date, format="%Y-%m-%d")
 
 Calculate totals per day and plot histogram afterwards
 
-```{r calcSums}
+
+```r
 activitySums <- aggregate(steps ~ date, activityData, sum)
 hist(activitySums$steps)
 ```
 
+![](PA1_template_files/figure-html/calcSums-1.png)<!-- -->
+
 
 Calculate and print mean and median:
 
-```{r calcMeanMedian}
+
+```r
 activityMean <- mean(activitySums$steps)
 activityMedian <- median(activitySums$steps)
 print(paste("Activity Mean: ",activityMean))
+```
+
+```
+## [1] "Activity Mean:  10766.1886792453"
+```
+
+```r
 print(paste("Activity Median:",activityMedian))
+```
+
+```
+## [1] "Activity Median: 10765"
 ```
 
 
@@ -44,7 +56,8 @@ print(paste("Activity Median:",activityMedian))
 
 We group by intervals and use the averages across days:
 
-```{r averageIntervals}
+
+```r
 activityIntervals <- aggregate(steps ~ interval, activityData, mean, rm.na=TRUE)
 #calculate max
 activityMax <- as.character(activityIntervals[activityIntervals$steps==max(activityIntervals$steps),1])
@@ -54,7 +67,9 @@ activityString <-paste(substr(activityMax, 1, nchar(activityMax)-2), ":" ,substr
 plot(activityIntervals$interval, activityIntervals$steps, xlab="Interval", ylab="Average Steps", type="l")
 ```
 
-The time interval with the most average steps is `r activityString`.
+![](PA1_template_files/figure-html/averageIntervals-1.png)<!-- -->
+
+The time interval with the most average steps is 8:35.
 
 
 
@@ -62,29 +77,51 @@ The time interval with the most average steps is `r activityString`.
 
 Count rows with NAs:
 
-```{r countNA}
+
+```r
 nrow(activityData[is.na(activityData$steps),])
+```
+
+```
+## [1] 2304
 ```
 
 For missing values, the average of the others days interval should be taken as representation.
 
-```{r Impute}
+
+```r
 ActivityDataNew <- activityData
 missingValues <- activityIntervals[activityIntervals==unique(activityData[is.na(activityData$steps),]$interval),]$steps
 ActivityDataNew[is.na(ActivityDataNew$steps), ]$steps= missingValues 
-
 ```
 
 
 Create histogram of steps taken per day on new data. Sum up first:
 
-```{r newHist}
+
+```r
 activitySums <- aggregate(steps ~ date, ActivityDataNew, sum)
 hist(activitySums$steps)
+```
+
+![](PA1_template_files/figure-html/newHist-1.png)<!-- -->
+
+```r
 activityMean <- mean(activitySums$steps)
 activityMedian <- median(activitySums$steps)
 print(paste("New Activity Mean: ",activityMean))
+```
+
+```
+## [1] "New Activity Mean:  10766.1886792453"
+```
+
+```r
 print(paste("New Activity Median:",activityMedian))
+```
+
+```
+## [1] "New Activity Median: 10766.1886792453"
 ```
 
 
@@ -98,7 +135,8 @@ The median value differs from the initial data exploration. The median is now id
 Create factor vector, combine it with data frame and plot it with ggplot2:
 
 
-```{r weekend}
+
+```r
 #create logical vector first
 weekPartVector <- as.POSIXlt(ActivityDataNew$date)$wday >= 1 & as.POSIXlt(ActivityDataNew$date)$wday <=4
 
@@ -116,6 +154,8 @@ library(ggplot2)
 p1 <- ggplot(activityIntervals, aes(x=interval, y=steps)) + geom_line()
 p1 + facet_grid(weekPartVector ~ .)
 ```
+
+![](PA1_template_files/figure-html/weekend-1.png)<!-- -->
 
 
 There are differences in activity patterns. On weekends there is more activity around noon.
